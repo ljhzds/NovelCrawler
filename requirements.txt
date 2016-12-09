@@ -1,0 +1,6 @@
+requests
+mongoengine>=0.10.7
+fake_useragent
+bs4
+tornado
+jinja2
