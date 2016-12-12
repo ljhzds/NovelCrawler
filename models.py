@@ -95,6 +95,7 @@ class Book(BaseModel):
     tag = StringField(max_length=100)
     cover_url = StringField()
     book_url = StringField(required=True)
+    to_update_url = StringField()
     description = StringField()
     author = ReferenceField(Author, required=True)
     chapters = ListField(ReferenceField(Chapter))

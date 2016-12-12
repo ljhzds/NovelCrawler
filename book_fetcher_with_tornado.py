@@ -19,7 +19,10 @@ class Item(object):
 
 class BookItem(object):
     def __init__(self, book):
-        self.url = book.book_url
+        if not book.to_update_url:
+            self.url = None
+        else:
+            self.url = book.to_update_url
         self.book = book
 
 
@@ -63,27 +66,35 @@ def find_urls_and_next_page(item, html, config, **kwargs):
 def save_book(item, html, config):
     url = item.url
 
-    book_id = re.search(re.compile(r"/book/(\d+).html"), url).group(1)
-    book = Book.objects.filter(from_site_book_id=book_id)
+    book = Book.objects.filter(book_url=url)
     if book:
-        return book[0], None
-    book = None
+        book = book[0]
+
     soup = BeautifulSoup(html, "html.parser")
 
     try:
         cover_url = soup.find("div", class_="block_img2").img["src"]
-        book_url = soup.find("a", text="查看目录")["href"]
+        to_update_url = soup.find("a", text="查看目录")["href"]
         block_txt2 = soup.find("div", class_="block_txt2")
         name, authorname, tag = [p.text.split(
             '：')[-1] for p in block_txt2.find_all("p")[:3]]
         description = soup.find("div", class_="intro_info").text.strip()
         print(name, authorname, tag)
     except:
-        raise ParseHtmlError("解析{}时碰到错误{}。".format(book_url, e))
-
+        raise ParseHtmlError("解析{}时碰到错误{}。".format(to_update_url, e))
+    to_update_url = add_prefix(to_update_url)
     author = Author.get_or_create(authorname)
-    book = Book(name=name, author=author, tag=tag, cover_url=cover_url,
-                book_url=book_url, description=description)
+    if not book:
+        book = Book(name=name, author=author, tag=tag, cover_url=cover_url,
+                    book_url=url, to_update_url=to_update_url, description=description, from_site_book_id=book_id)
+    else:
+        book.name = name
+        book.author = author
+        book.tag = tag
+        book.cover_url = cover_url
+        book.book_url = url
+        book.description = description
+        book.from_site_book_id = book_id
     try:
         book.save()
     except NotUniqueError:
@@ -120,7 +131,7 @@ def save_chapter(item, html, config, **kwargs):
     next_page = _next(soup, nextpage_regex)
     item = None
     if next_page and next_page != url:
-        book.book_url = next_page
+        book.to_update_url = next_page
         book.save()
         item = BookItem(book)
     return None, item
@@ -188,7 +199,7 @@ class Fetcher(object):
     def fetch(self):
         item = yield self._q.get()
         try:
-            if item.url in self.fetching:
+            if item.url in self.fetching or not item.url:
                 return
             print("正在抓取: {}".format(item.url))
             # self.fetching.add(item.url)
@@ -228,6 +239,8 @@ class Fetcher(object):
 
 
 if __name__ == "__main__":
+    import random
+
     def book_urls_get_entries(config=piaotian):
         for url in config["category"]:
             item = Item(url)
@@ -237,23 +250,47 @@ if __name__ == "__main__":
         for bu in BookUrl.objects.filter(base_site=piaotian["prefix"]):
             yield Item(bu.url)
 
-    def chapter_get_entries(config=piaotian, bookname=None):
-        for book in Book.objects.filter(name=bookname):
-            yield BookItem(book)
+    def chapter_get_entries(config=piaotian, **kwargs):
+        
+        booklist = Book.objects.all().filter(**kwargs)
 
-    def chapter_content_get_entries(config=piaotian, bookname=None, force_update=False, **kwargs):
-        for book in Book.objects.filter(name=bookname):
+        # for test 500 books
+        booklist = list(booklist)
+        if len(booklist) > 500:
+            booklist = random.sample(booklist, 500)
+
+        # for book in booklist:
+        #     yield BookItem(book)
+        return [BookItem(book) for book in booklist]
+
+    def chapter_content_get_entries(config=piaotian, force_update=False, **kwargs):
+        booklist = Book.objects.all().filter(**kwargs)
+        for book in booklist:
             if force_update:
-                for chapter in Chapter.objects.filter(book=book, **kwargs):
-                    yield ChapterItem(chapter)
+                clist = list(Chapter.objects.all().filter(book=book))
             else:
-                for chapter in Chapter.objects.filter(book=book, **kwargs).filter(content=None):
-                    yield ChapterItem(chapter)
+                clist = list(Chapter.objects.filter(book=book).filter(content=None))
+            clist.sort(key=lambda x:x.index)
+            return [ChapterItem(c) for c in clist]
 
-    # entries = chapter_get_entries(bookname="锦衣夜行")
-    # fetcher = Fetcher(entries, save_chapter, piaotian)
+    # for b in chapter_get_entries(from_site_book_id="1955"):
+    #     print(b.book.name, b.book.book_url, b.url)
+    # for c in chapter_content_get_entries(name="官仙"):
+    #     pass
+    # 小说信息入库
+    # entries = book_get_entries()
+    # parser = save_book
+    # fetcher = Fetcher(entries, parser, piaotian)
     # fetcher.run()
-    entries = chapter_content_get_entries(bookname="锦衣夜行")
+
+    # 小说章节更新
+    # entries = chapter_get_entries(name="姐姐爱上我")
+    # parser = save_chapter
+    # fetcher = Fetcher(entries, parser, piaotian)
+    # fetcher.run()
+
+    # 章节内容更新
+    entries = chapter_content_get_entries(name="姐姐爱上我")
     parser = save_chapter_content
     fetcher = Fetcher(entries, parser, piaotian)
     fetcher.run()
