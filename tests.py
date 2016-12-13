@@ -2,8 +2,7 @@
 import re
 import time
 
-from .models import Book, Chapter, BookUrl
-from .novel_site_config import sites
+from spider.models import Book, Chapter, BookUrl
 
 
 # for c in Chapter.objects.filter(url__not__contains="html"):

@@ -1,11 +1,9 @@
 # coding: utf-8
 
-try:
-    from spider.fetcher import Fetcher
-    from spider.parser_and_entry import parsers_and_entries
-    from spider.novel_site_config import sites
-except:
-    pass
+from spider.fetcher import Fetcher
+from spider.parser_and_entry import parsers_and_entries
+from spider.novel_site_config import sites
+from epub.epub import make_epub
 
 
 def book_url_fetch(config, **kwargs):
@@ -40,8 +38,10 @@ def main():
     for config in sites.values():
         # book_url_fetch(config=config)
         # book_info_fetch(config=config)
-        chapter_info_fetch(config=config, name__contains="永夜君王")
+        # chapter_info_fetch(config=config, name__contains="永夜君王")
         chapter_content_fetch(config=config, name__contains="永夜君王")
+
+    make_epub("姐姐爱上我")
 
 
 if __name__ == "__main__":

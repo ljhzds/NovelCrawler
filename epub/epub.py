@@ -1,7 +1,6 @@
 # coding: utf-8
 import os
 import os.path
-import re
 import zipfile
 # from chardet.universaldetector import UniversalDetector
 # from cchardet import Detector as UniversalDetector
@@ -19,6 +18,7 @@ __related_links__ = (
     "http://blog.itpub.net/29733787/viewspace-1477082/",
     )
 
+static_dir = os.path.join(os.path.dirname(__file__), 'static')
 
 def make_epub(bookname):
     epub_name = '.'.join([bookname, "epub"])
@@ -49,7 +49,8 @@ def make_epub(bookname):
 
 
 
-def render_chapter(chapter, chapter_template="static/chapter.html"):
+def render_chapter(chapter, chapter_template="chapter.html"):
+    chapter_template = os.path.join(static_dir, chapter_template)
     with open(chapter_template) as f:
         template = jinja2.Template(f.read())
         chapter_str = template.render(title=chapter.title, content=chapter.content)
@@ -70,18 +71,20 @@ def create_container(epub):
     epub.writestr('META-INF/container.xml', container_info, compress_type=zipfile.ZIP_DEFLATED)
 
 
-def create_stylesheet(epub, css_name="static/main.css"):
+def create_stylesheet(epub, css_name="main.css"):
+    css_name = os.path.join(static_dir, css_name)
     with open(css_name) as f:
         css_info = f.read()
     epub.writestr('OEBPS/css/main.css', css_info, compress_type=zipfile.ZIP_DEFLATED)
 
 
 def create_cover(epub, cover_url=None):
+    cover_image = os.path.join(static_dir, "cover.jpg")
     try:
         req = requests.get(cover_url)
         epub.writestr('OEBPS/images/cover.jpg', req.content, compress_type=zipfile.ZIP_DEFLATED)
     except:
-        with open("static/cover.jpg", "rb") as f:    
+        with open(cover_image, "rb") as f:
             epub.writestr('OEBPS/images/cover.jpg', f.read(), compress_type=zipfile.ZIP_DEFLATED)
 
 
@@ -90,7 +93,8 @@ def create_chapters(epub, chapterList):
         epub.writestr("OEBPS/chapter{}.html".format(chapter.index), render_chapter(chapter), compress_type=zipfile.ZIP_DEFLATED)
 
 
-def create_ncx(epub, book, chapterList, ncx_template="static/fb.ncx", **kwargs):
+def create_ncx(epub, book, chapterList, ncx_template="fb.ncx", **kwargs):
+    ncx_template = os.path.join(static_dir, ncx_template)
     kwargs.update({"author": book.author})
     kwargs.update({"bookname": book.name})
     with open(ncx_template, encoding="utf-8") as f:
@@ -98,15 +102,14 @@ def create_ncx(epub, book, chapterList, ncx_template="static/fb.ncx", **kwargs):
         ncx_str =  template.render(chapterList=chapterList, **kwargs)
         epub.writestr("OEBPS/fb.ncx", ncx_str, compress_type=zipfile.ZIP_DEFLATED)
 
-def create_opf(epub, book, chapterList, opf_template="static/fb.opf", **kwargs):
+def create_opf(epub, book, chapterList, opf_template="fb.opf", **kwargs):
+    opf_template = os.path.join(static_dir, opf_template)
     kwargs.update({"rights":  "请支持正版阅读，实在不能支持时才阅读这个版本，请感恩作者。"})
     kwargs.update({"author": book.author})
     kwargs.update({"bookname": book.name})
-    # with open(opf_template, encoding="utf-8") as f, open("opftext.opf", "w", encoding="utf-8") as fw:
     with open(opf_template, encoding="utf-8") as f:
         template = jinja2.Template(f.read())
         opf_str = template.render(chapterList=chapterList, **kwargs)
-        # fw.write(opf_str)
         epub.writestr("OEBPS/fb.opf", opf_str, compress_type=zipfile.ZIP_DEFLATED)
 
 
