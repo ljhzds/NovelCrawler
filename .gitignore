@@ -1,5 +1,8 @@
 # pyc
 *.pyc
 /tmp_code
+/.idea
 /__pycache__
 *.DS_Store
+*.txt
+*.epub

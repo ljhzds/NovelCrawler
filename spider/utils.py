@@ -1,13 +1,11 @@
 # coding=utf-8
 
-import random
 import time
 
 import requests
 from fake_useragent import UserAgent
 # from retry import retry
-
-from config import REFERER_LIST, TIMEOUT, PROXY_TIME_OUT, piaotian
+from .config import REFERER_LIST, TIMEOUT, PROXY_TIME_OUT
 
 
 class CrawlerError(Exception):
@@ -20,7 +18,7 @@ class SaveError(Exception):
     pass
 
 
-def add_prefix(url, prefix=piaotian['prefix']):
+def add_prefix(url, prefix="http"):
     if not url.startswith(prefix):
         return ''.join([prefix, url])
     else:

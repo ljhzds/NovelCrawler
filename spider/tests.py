@@ -2,9 +2,8 @@
 import re
 import time
 
-from models import Book, Chapter, BookUrl
-from config import piaotian
-from utils import add_prefix
+from .models import Book, Chapter, BookUrl
+from .novel_site_config import sites
 
 
 # for c in Chapter.objects.filter(url__not__contains="html"):
@@ -26,7 +25,9 @@ from utils import add_prefix
 count = 0
 def find_book(**kwargs):
     for book in Book.objects.all().filter(**kwargs):
-        print(book.name)
+        print(book.name, book.book_url, book.to_update_url)
+        # book.to_update_url = book.book_url
+        # book.save()
 
 def find_chapter(**kwargs):
     for book in Book.objects.all().filter(**kwargs):
@@ -36,4 +37,5 @@ def find_chapter(**kwargs):
             print(book.name, x.title)
             yield x
 
-find_book(name__contains="爱")
+if __name__ == "__main__":
+    find_book(name__contains="爱")

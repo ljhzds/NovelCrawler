@@ -3,7 +3,7 @@ from mongoengine import (connect, StringField, DateTimeField, ReferenceField,
                          DictField, IntField, ListField, Document,
                          DoesNotExist)
 
-from config import DB_HOST, DB_PORT, DATABASE_NAME
+from .config import DB_HOST, DB_PORT, DATABASE_NAME
 
 def lazy_connect():
     return connect(DATABASE_NAME, host=DB_HOST, port=DB_PORT)
@@ -113,5 +113,4 @@ class Book(BaseModel):
             ],
             'ordering': ['-read_times', '-download_times', '-create_at']
         }
-
 # db.drop_database('chapter')

@@ -9,7 +9,7 @@ import jinja2
 import requests
 from mongoengine import DoesNotExist
 
-from models import Book, Chapter
+from spider.models import Book, Chapter
 
 
 __author__ = "ZhangDesheng"
@@ -111,4 +111,4 @@ def create_opf(epub, book, chapterList, opf_template="static/fb.opf", **kwargs):
 
 
 if __name__ == "__main__":
-    make_epub("锦衣夜行")
+    make_epub("永夜君王")
