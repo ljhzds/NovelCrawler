@@ -40,7 +40,7 @@ def get_book_info(html):
             '：')[-1] for p in block_txt2.find_all("p")[:3]]
         description = soup.find("div", class_="intro_info").text.strip()
         print(name, authorname, tag)
-    except:
+    except Exception as e:
         raise Exception("解析{}时碰到错误{}。".format(soup.title, e))
     to_update_url = add_prefix(to_update_url)
     return cover_url, to_update_url, name, authorname, tag, description
