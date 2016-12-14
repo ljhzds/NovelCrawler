@@ -14,7 +14,6 @@ def book_url_parser(item, html, config, **kwargs):
     以及下一页url
     """
     url = item.url
-    print('book_url_parser', config)
     book_urls = config["bookUrlFunc"](html)
 
     next_page = config["nextPageFunc"](html)
@@ -117,9 +116,7 @@ def book_url_entry(config, **kwargs):
         def set_url(self, url):
             self.url = url
     # print('book_url_entry', config)
-    for url in config["category"]:
-        item = Item(url)
-        yield item
+    return [Item(url) for url in config["category"]]
 
 def book_info_entry(**kwargs):
     class Item(object):
@@ -128,9 +125,7 @@ def book_info_entry(**kwargs):
 
         def set_url(self, url):
             self.url = url
-
-    for bu in BookUrl.objects.all().filter(**kwargs):
-        yield Item(bu.url)
+    return [Item(bu.url) for bu in list(BookUrl.objects.all().filter(**kwargs))]
 
 def chapter_info_entry(**kwargs):
     class BookItem(object):
