@@ -2,7 +2,7 @@
 
 from flask import Blueprint, render_template
 
-from novel_site.models import Book
+from .models import Book
 
 mod = Blueprint('novel', __name__)
 
