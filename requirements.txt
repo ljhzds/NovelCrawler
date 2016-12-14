@@ -4,3 +4,4 @@ fake_useragent
 bs4
 tornado
 jinja2
+flask

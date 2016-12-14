@@ -36,12 +36,12 @@ def chapter_content_fetch(config, force_update=False, **kwargs):
 
 def main():
     for config in sites.values():
-        # book_url_fetch(config=config)
-        # book_info_fetch(config=config)
+        book_url_fetch(config=config)
+        book_info_fetch(config=config)
         # chapter_info_fetch(config=config, name__contains="永夜君王")
-        chapter_content_fetch(config=config, name__contains="永夜君王")
+        # chapter_content_fetch(config=config, name__contains="永夜君王")
 
-    make_epub("姐姐爱上我")
+    # make_epub("姐姐爱上我")
 
 
 if __name__ == "__main__":
