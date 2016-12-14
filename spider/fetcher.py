@@ -16,12 +16,11 @@ class Fetcher(object):
         parse需要返回两个值: target, next_page, target会保存，next_page则继续推送到队列
         config: 该类页面解析规则
         """
-
         self.entry = entry
         self.config = config
         self.parse = parse
 
-        self.encoding = config.get("encoding", "gbk")
+        self.encoding = self.config.get("encoding", "gbk")
 
         self.headers = dict().update({'user-agent': get_user_agent()})
 

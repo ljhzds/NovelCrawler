@@ -25,7 +25,7 @@ def get_next_page(html):
 
 def get_book_url(html):
     soup = BeautifulSoup(html, "html.parser")
-    book_urls = [config["urlFix"](a["href"])
+    book_urls = [add_prefix(a["href"])
                  for a in soup.find_all("a", attrs={"href": re.compile(r"/book/\d+.html")})]
     return book_urls
 
@@ -41,7 +41,7 @@ def get_book_info(html):
         description = soup.find("div", class_="intro_info").text.strip()
         print(name, authorname, tag)
     except:
-        raise Exception("解析{}时碰到错误{}。".format(to_update_url, e))
+        raise Exception("解析{}时碰到错误{}。".format(soup.title, e))
     to_update_url = add_prefix(to_update_url)
     return cover_url, to_update_url, name, authorname, tag, description
 

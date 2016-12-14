@@ -14,7 +14,7 @@ def book_url_parser(item, html, config, **kwargs):
     以及下一页url
     """
     url = item.url
-
+    print('book_url_parser', config)
     book_urls = config["bookUrlFunc"](html)
 
     next_page = config["nextPageFunc"](html)
@@ -38,12 +38,12 @@ def book_info_parser(item, html, config, **kwargs):
 
     try:
         cover_url, to_update_url, name, authorname, tag, description = config["bookInfoFunc"](html)
-    except:
-        raise ParseHtmlError("解析{}时碰到错误{}。".format(to_update_url, e))
+    except Exception as e:
+        raise ParseHtmlError("解析{}时碰到错误{}。".format(url, e))
     author = Author.get_or_create(authorname)
     if not book:
         book = Book(name=name, author=author, tag=tag, cover_url=cover_url,
-                    book_url=url, to_update_url=to_update_url, description=description, from_site_book_id=book_id)
+                    book_url=url, to_update_url=to_update_url, description=description)
     else:
         book.name = name
         book.author = author
@@ -51,7 +51,7 @@ def book_info_parser(item, html, config, **kwargs):
         book.cover_url = cover_url
         book.book_url = url
         book.description = description
-        book.from_site_book_id = book_id
+        # book.from_site_book_id = book_id
     try:
         book.save()
     except NotUniqueError:
@@ -109,7 +109,19 @@ def chapter_content_parser(item, html, config, **kwargs):
     return None, None
 
 
-def book_url_entry():
+def book_url_entry(config, **kwargs):
+    class Item(object):
+        def __init__(self, url):
+            self.url = url
+
+        def set_url(self, url):
+            self.url = url
+    # print('book_url_entry', config)
+    for url in config["category"]:
+        item = Item(url)
+        yield item
+
+def book_info_entry(**kwargs):
     class Item(object):
         def __init__(self, url):
             self.url = url
@@ -117,11 +129,6 @@ def book_url_entry():
         def set_url(self, url):
             self.url = url
 
-    for url in config["category"]:
-        item = Item(url)
-        yield item
-
-def book_info_entry(**kwargs):
     for bu in BookUrl.objects.all().filter(**kwargs):
         yield Item(bu.url)
 
